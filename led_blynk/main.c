@@ -21,7 +21,7 @@ extern uint32_t __bss_start, __bss_end;
 
 __attribute__((naked)) __attribute__((section(".startup"))) \
 void Init_Machine(void) {
-  // set CSPR
+  // set CPSR
   __asm volatile("ldr r0, =0x000000d3");
   __asm volatile("msr cpsr, r0");
   // set stack pointer
