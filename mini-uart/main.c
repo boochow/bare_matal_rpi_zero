@@ -22,14 +22,24 @@
 #define GPF_ALT_5  2U
 
 // Mini UART registers
+#define AUX_IRQ     IOREG(0x20215000)
+#define AUX_ENABLES IOREG(0x20215004)
+
 #define MU_IO   IOREG(0x20215040)
-#define MU_LSR  IOREG(0x20215054)
+#define MU_IER  IOREG(0x20215044)
+#define MU_IIR  IOREG(0x20215048)
 #define MU_LCR  IOREG(0x2021504C)
+#define MU_MCR  IOREG(0x20215050)
+#define MU_LSR  IOREG(0x20215054)
+#define MU_MSR  IOREG(0x20215058)
+#define MU_SCRATCH  IOREG(0x2021505C)
 #define MU_CNTL IOREG(0x20215060)
+#define MU_STAT IOREG(0x20215064)
 #define MU_BAUD IOREG(0x20215068)
 
 #define MU_LSR_TX_IDLE  (1U << 6)
 #define MU_LSR_TX_EMPTY (1U << 5)
+#define MU_LSR_RX_RDY   (1U)
 
 // System timer counter
 #define SYST_CLO IOREG(0x20003004)
@@ -78,20 +88,50 @@ void delay_ms(uint32_t duration){
   return;
 }
 
-int main(int argc, char **argv) {
-  // set GPIO14, GPIO15 to pull down, alternate function 0
-  GPFSEL1 = (GPF_ALT_5 << (3*4)) | (GPF_ALT_5 << (4*4));
+void uart_putchar(unsigned char c) {
+    while (!(MU_LSR & MU_LSR_TX_IDLE) && !(MU_LSR & MU_LSR_TX_EMPTY));
+    MU_IO = 0xffU & c;
+}
 
-  // UART settings (mini uart is always parity none, 1 start bit 1 stop bit)
+int main(int argc, char **argv) {
+  const char msg[] = "Echo back test.\012\015";
+  const int msglen = 17;
+  
+  // set GPIO14, GPIO15 to pull down, alternate function 0
+  GPFSEL1 = (GPF_ALT_5 << (3*4)) | (GPF_ALT_5 << (3*5));
+
+  // UART basic settings
+  AUX_ENABLES = 1;
+  MU_CNTL = 0;   // mini uart disable
+  MU_IER = 0;    // disable receive/transmit interrupts
+  MU_IIR = 0xC6; // enable FIFO(0xC0), clear FIFO(0x06)
+  MU_MCR = 0;    // set RTS to High
+
+  // data and speed (mini uart is always parity none, 1 start bit 1 stop bit)
   MU_LCR = 1;    // 8 bits
   MU_BAUD = 270; // 1115200 bps
-  
+
+  // enable transmit and receive
+  MU_CNTL = 3;
+
+  // type message
+  for(int i = 0; i < msglen; i++) {
+    uart_putchar(msg[i]);
+    delay_ms(100);
+  }
+
+  MU_IIR = 0xC6; // enable FIFO(0xC0), clear FIFO(0x06)
+
+  // echo back
   while (1) {
-    while (!(MU_LSR & MU_LSR_TX_IDLE) && !(MU_LSR & MU_LSR_TX_EMPTY));
-    MU_IO = 0x00ff & 'A';
-    delay_ms(300);
-    MU_IO = 0x00ff & 'T';
-    delay_ms(300);
+    uint32_t c;
+    while (!(MU_LSR & MU_LSR_RX_RDY));
+    c = MU_IO;
+    if (c) {
+      uart_putchar(c);
+      if (c == 0x0D)
+	uart_putchar(0X0A);
+    }
   }
 
   return 0;
