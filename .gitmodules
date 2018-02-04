@@ -1,0 +1,3 @@
+[submodule "usb_kbd/csud"]
+	path = usb_kbd/csud
+	url = https://github.com/Chadderz121/csud
