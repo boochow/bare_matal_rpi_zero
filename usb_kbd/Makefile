@@ -12,7 +12,7 @@ AR = $(CROSS_COMPILE)ar
 ECHO = @echo
 
 INC += -I. -Icsud/include
-CFLAGS_ARM1176JZF-S = -mabi=aapcs-linux -mcpu=arm1176jzf-s -msoft-float -fshort-wchar
+CFLAGS_ARM1176JZF-S = -mabi=aapcs -mcpu=arm1176jzf-s -msoft-float -fshort-wchar
 CFLAGS = $(INC) -Wall -Werror -std=c99 -nostdlib $(CFLAGS_ARM1176JZF-S) $(COPT)
 
 LDFLAGS = -nostdlib -T rpi.ld -Map=$@.map --cref -Lcsud
