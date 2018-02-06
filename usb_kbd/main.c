@@ -60,6 +60,7 @@ void Init_Machine(void) {
   for (uint32_t *dest = &__bss_start; dest < &__bss_end;) {
     *dest++ = 0;
   }
+  
   __asm volatile("bl _start");
   __asm volatile("b .");
 }
@@ -95,7 +96,7 @@ void uart_putchar(unsigned char c) {
     MU_IO = 0xffU & c;
 }
 
-void uart_putbyte(unsigned char c) {
+void uart_puthex(unsigned char c) {
     static const char hex[16] = "0123456789ABCDEF";
     uart_putchar(hex[c >> 4]);
     uart_putchar(hex[c & 0x0fU]);
@@ -153,7 +154,8 @@ int main(int argc, char **argv) {
 
   while (1) {
       unsigned int kbd_addr;
-      unsigned int old_key[6];
+      unsigned int keys[6];
+      unsigned int key;
 
       if (kbd_addr == 0) {
           // Is there a keyboard ?
@@ -167,11 +169,15 @@ int main(int argc, char **argv) {
 
       if (kbd_addr != 0) {
           for(int i = 0; i < 6; i++) {
-              old_key[i] = KeyboardGetKeyDown(kbd_addr, i);
-              uart_putbyte(old_key[i]);
-              uart_putchar(' ');
+              // Read and print each keycode of pressed keys
+              key = KeyboardGetKeyDown(kbd_addr, i);
+              if (key != keys[0] && key != keys[1] && key != keys[2] && \
+                  key != keys[3] && key != keys[4] && key != keys[5]) {
+                  uart_puthex(key);
+                  uart_putchar(' ');
+              }
+              keys[i] = key;
           }
-          println("");
 
           if (KeyboardPoll(kbd_addr) != 0) {
               kbd_addr = 0;
