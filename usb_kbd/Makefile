@@ -31,7 +31,7 @@ deploy: kernel.img
 #set cp command destination to your SD card reader
 	cp kernel.img /media/user/4AB2-BF68/
 
-kernel.elf: $(OBJ) libcsud.a rpi.ld
+kernel.elf: libcsud.a rpi.ld $(OBJ) 
 	$(ECHO) "LINK $@"
 	$(LD) $(LDFLAGS) -o $@ $(OBJ) $(LIBS)
 	$(SIZE) $@
