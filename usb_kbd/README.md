@@ -1,6 +1,6 @@
 # usb_kbd
 
-Example of reading USB Keyboard keycode.
+Example of reading USB Keyboard keycodes.
 The raw key codes of pressed keys (up to six keys) are printed
 to UART.
 
@@ -14,8 +14,8 @@ cause device driver error.
 
 
 You can use a USB hub to connect a keyboard. Multiple keyboards
-can be connected but this program scans key codes from only one
-keyboard.
+can be connected but this program reads key codes from the first
+keyboard only.
 
-Conncting / Disconnecting keyboard while the program is running
+Connecting / Disconnecting keyboard while the program is running
 is allowed.
