@@ -172,7 +172,7 @@ int main(int argc, char **argv) {
               // Read and print each keycode of pressed keys
               key = KeyboardGetKeyDown(kbd_addr, i);
               if (key != keys[0] && key != keys[1] && key != keys[2] && \
-                  key != keys[3] && key != keys[4] && key != keys[5]) {
+                  key != keys[3] && key != keys[4] && key != keys[5] && key) {
                   uart_puthex(key);
                   uart_putchar(' ');
               }
