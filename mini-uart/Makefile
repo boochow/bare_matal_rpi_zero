@@ -1,4 +1,4 @@
-CROSS_COMPILE = arm-eabi-
+CROSS_COMPILE = arm-none-eabi-
 AS = $(CROSS_COMPILE)as
 CC = $(CROSS_COMPILE)gcc
 CXX = $(CROSS_COMPILE)g++
