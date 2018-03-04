@@ -184,6 +184,7 @@ int main(int argc, char **argv) {
               println("Lost: keyboard");
           }
       }
+      delay_ms(5);
   }
 
   return 0;
