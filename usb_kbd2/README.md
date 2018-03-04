@@ -9,10 +9,11 @@ The raw key codes of pressed keys are printed to UART.
 
 Tested on RPi Zero W with a USB hub.
 
-Only basic USB keyboards can be used. The keyboards with extra
-functions such as multimedia keys or wireless communication may
-cause device driver error.
-
+If you use RPi A series or Zero series you must insert a usb
+hub between RPi and USB keyboard because this USB driver assumes
+a usb hub is always connected to the SoC of RPi and it is correct 
+in case when you use B-type RPis, because they have onboard USB
+hub chip (LAN9512).
 
 Multiple keyboards can be connected but this program reads keys
 from the first keyboard only.
