@@ -48,7 +48,7 @@ uint32_t mailbox_read(uint8_t chan) {
 }
 
 typedef volatile struct                                          \
-__attribute__((aligned(256))) _fb_info_t {
+__attribute__((aligned(16))) _fb_info_t {
     uint32_t display_w;  //write display width
     uint32_t display_h;  //write display height
     uint32_t w;          //write framebuffer width
@@ -57,8 +57,8 @@ __attribute__((aligned(256))) _fb_info_t {
     uint32_t bpp;        //write bits per pixel
     uint32_t ofs_x;      //write x offset of framebuffer
     uint32_t ofs_y;      //write y offset of framebuffer
-    uint32_t buf_addr;     //write 0 to get value
-    uint32_t buf_size;    //write 0 to get value
+    uint32_t buf_addr;   //write 0 to get value
+    uint32_t buf_size;   //write 0 to get value
 } fb_info_t;
 
 void fb_init(fb_info_t *fb_info) {
