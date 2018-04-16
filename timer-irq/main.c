@@ -259,9 +259,9 @@ int main(int argc, char **argv) {
 
   // set timer
   ARM_TIMER_CTL = 0x003E0002; // timer and irq disabled, 23-bit counter
-  ARM_TIMER_LOD = 500000 - 1;// 1MHz / 1000000 = 1Hz
+  ARM_TIMER_LOD = 500000 - 1; // 1MHz / 500000 = 2Hz
   ARM_TIMER_RLD = 500000 - 1;
-  ARM_TIMER_DIV = 0x000000F9; // 250MHz / (249+1) = 1 MHz
+  ARM_TIMER_DIV = 0x000000F9; // 250MHz / (249 + 1) = 1 MHz
   ARM_TIMER_CLI = 0;
   ARM_TIMER_CTL = 0x003E00A2; // timer and irq enabled, 23-bit counter
 
