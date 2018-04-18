@@ -165,13 +165,11 @@ void set_vbar(vector_table_t *base) {
 #define IRQ_DISABLE_BASIC IOREG(0x2000B224)
 
 
-#define SYS_TIMER_CS  IOREG(0x20003000)
-#define SYS_TIMER_CLO IOREG(0x20003004)
-#define SYS_TIMER_CHI IOREG(0x20003008)
-#define SYS_TIMER_C0  IOREG(0x2000300C)
-#define SYS_TIMER_C1  IOREG(0x20003010)
-#define SYS_TIMER_C2  IOREG(0x20003014)
-#define SYS_TIMER_C3  IOREG(0x20003018)
+#define SYST_CS  IOREG(0x20003000)
+#define SYST_C0  IOREG(0x2000300C)
+#define SYST_C1  IOREG(0x20003010)
+#define SYST_C2  IOREG(0x20003014)
+#define SYST_C3  IOREG(0x20003018)
 
 #define IRQ_TIMER_C1  (1 << 1)
 #define IRQ_TIMER_C3  (1 << 3)
@@ -194,14 +192,14 @@ static void __attribute__((interrupt("IRQ"))) irq_handler(void) {
     if (IRQ_PEND1 & IRQ_TIMER_C1) {
         counter1++;
         changed1 = 1;
-        SYS_TIMER_C1 = SYS_TIMER_C1 + 960000;
-        SYS_TIMER_CS |= (1 << 1);
+        SYST_C1 = SYST_C1 + 960000;
+        SYST_CS |= (1 << 1);
     }
     if (IRQ_PEND1 & IRQ_TIMER_C3) {
         counter3++;
         changed3 = 1;
-        SYS_TIMER_C3 = SYS_TIMER_C3 + 720000;
-        SYS_TIMER_CS |= (1 << 3);
+        SYST_C3 = SYST_C3 + 720000;
+        SYST_CS |= (1 << 3);
     }
 }
 
@@ -263,9 +261,9 @@ int main(int argc, char **argv) {
   MU_IIR = 0xC6; // enable FIFO(0xC0), clear FIFO(0x06)
 
   // set timer
-  int now = SYS_TIMER_CLO;
-  SYS_TIMER_C1 = now + 1000000;
-  SYS_TIMER_C3 = now + 1000100;
+  int now = SYST_CLO;
+  SYST_C1 = now + 1000000;
+  SYST_C3 = now + 1000100;
   
   // enable IRQ
   set_vbar(&exception_vector);
