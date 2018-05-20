@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
   MU_MCR = 0;    // set RTS to High
 
   // data and speed (mini uart is always parity none, 1 start bit 1 stop bit)
-  MU_LCR = 1;    // 8 bits
+  MU_LCR = 3;    // 8 bits
   MU_BAUD = 270; // 1115200 bps
 
   // enable transmit and receive
