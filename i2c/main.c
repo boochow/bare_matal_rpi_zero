@@ -142,7 +142,7 @@ void delay_ms(uint32_t duration){
   return;
 }
 
-void uart_putc(unsigned char c) {
+void uart_putc(const unsigned char c) {
     while (!(MU_LSR & MU_LSR_TX_IDLE) && !(MU_LSR & MU_LSR_TX_EMPTY));
     MU_IO = 0xffU & c;
 }
@@ -154,6 +154,11 @@ void uart_print(const char *s) {
 }
 
 #define TO_HEX(c)  (((c) < 10) ? (c) + 0x30 : (c) - 10 + 0x61)
+
+void uart_put_hex(const unsigned char c) {
+    uart_putc(TO_HEX(c >> 4));
+    uart_putc(TO_HEX(c & 0xfU));
+}
 
 // I2C functions
 
@@ -169,24 +174,28 @@ void i2c_init(i2c_t *i2c) {
 
 int i2c_write(i2c_t *i2c, const uint8_t *buf, const uint32_t buflen) {
     i2c->DLEN = buflen;
+    i2c->S |= S_DONE | S_ERR | S_CLKT;
     i2c->C = i2c->C & ~C_READ;
-    i2c->C |= C_ST | C_CLEAR;
+    i2c->C |= C_CLEAR;
+    i2c->C |= C_ST;
     int len = buflen;
     for(;;) {
-        if (i2c->S & S_ERR) {
+        if (i2c->S & S_TA) {
+            continue;
+        } else if (i2c->S & S_ERR) {
             // No Ack Error
             i2c->S |= S_ERR;
             return -1;
-        }
-        if (i2c->S & S_CLKT) {
+        } else if (i2c->S & S_CLKT) {
             // Timeout Error
             i2c->S |= S_CLKT;
             return -2;
-        }
-        if (i2c->S & S_DONE) {
-            // Write Done
+        } else if (i2c->S & S_DONE) {
+            // Transfer Done
+            i2c->S |= S_DONE;
             return buflen - len;
         }
+
         if ((i2c->S & S_TXD) && (len != 0)){
             // FIFO has a room
             i2c->FIFO = *buf++;
@@ -198,27 +207,35 @@ int i2c_write(i2c_t *i2c, const uint8_t *buf, const uint32_t buflen) {
 int i2c_read(i2c_t *i2c, uint8_t *buf, const uint32_t readlen) {
     int len = readlen;
     i2c->DLEN = readlen;
+    i2c->S |= S_DONE | S_ERR | S_CLKT;
     i2c->C |= C_READ;
+    i2c->C |= C_CLEAR;
     i2c->C |= C_ST;
     for(;;) {
-        if (i2c->S & S_ERR) {
+        if (i2c->S & S_TA) {
+            continue;
+        } else if (i2c->S & S_ERR) {
             // No Ack Error
             i2c->S |= S_ERR;
             return -1;
-        }
-        if (i2c->S & S_CLKT) {
+        } else if (i2c->S & S_CLKT) {
             // Timeout Error
             i2c->S |= S_CLKT;
             return -2;
-        }
-        if (i2c->S & S_DONE) {
-            // Write Done
+        } else if (i2c->S & S_DONE) {
+            // Transfer Done
+            i2c->S |= S_DONE;
             return readlen - len;
         }
-        if ((i2c->S & S_RXD) && (len != 0)){
-            // FIFO has a room
-            *buf++ = i2c->FIFO;
-            len--;
+
+        if (i2c->S & S_RXD) {
+            uint8_t data = i2c->FIFO;
+            if (len != 0) {
+                *buf++ = data;
+                len--;
+            } else {
+                return readlen - len;
+            }
         }
     }
 }
@@ -250,37 +267,37 @@ int main(int argc, char **argv) {
 
   i2c_init(i2c);
 
+  int start = 0x08;
+  int end = 0x77;
   uart_print("     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f\r\n");
   for (uint32_t addr = 0; addr <= 0x7f; addr++) {
-      int ret;
-
       if ((addr % 16) == 0) {
-          uart_putc(TO_HEX(addr >> 4));
-          uart_putc(TO_HEX(addr & 0xfU));
+          uart_put_hex(addr);
           uart_putc(':');
       }
 
-      if ((addr > 7) && (addr < 0x78)) {
+      if ((addr >= start) && (addr <= end)) {
           i2c_flush(i2c);
           i2c_set_slave(i2c, addr);
-//          ret = i2c_read(i2c, NULL, 0);
-          ret = i2c_write(i2c, "\000", 0);
+
+          int buf = 0;
+          int ret;
+          if (((0x30 <= addr) && (addr <= 0x37))
+              || ((0x50 <= addr) && (addr <= 0x5f))) {
+              ret = i2c_read(i2c, &buf, 1);
+          } else {
+              ret = i2c_write(i2c, &buf, 0);
+          }
+
+          if (ret >= 0) {
+              uart_putc(' ');
+              uart_put_hex(i2c_get_slave(i2c));
+          } else {
+              uart_print(" --");
+          }
       } else {
           // I2C reserved addresses
-          ret = -1;
-      }
-
-/*
-      uart_putc(' ');
-      uart_putc(TO_HEX((ret & 0xf0U) >> 4));
-      uart_putc(TO_HEX(ret & 0xfU));
-*/
-      if (ret == 0) {
-          uart_putc(' ');
-          uart_putc(TO_HEX(addr >> 4));
-          uart_putc(TO_HEX(addr & 0xfU));
-      } else {
-          uart_print(" --");
+          uart_print("   ");
       }
 
       if ((addr % 16) == 15) {
