@@ -180,9 +180,7 @@ int i2c_write(i2c_t *i2c, const uint8_t *buf, const uint32_t buflen) {
     i2c->C |= C_ST;
     int len = buflen;
     for(;;) {
-        if (i2c->S & S_TA) {
-            continue;
-        } else if (i2c->S & S_ERR) {
+        if (i2c->S & S_ERR) {
             // No Ack Error
             i2c->S |= S_ERR;
             return -1;
@@ -212,9 +210,7 @@ int i2c_read(i2c_t *i2c, uint8_t *buf, const uint32_t readlen) {
     i2c->C |= C_CLEAR;
     i2c->C |= C_ST;
     for(;;) {
-        if (i2c->S & S_TA) {
-            continue;
-        } else if (i2c->S & S_ERR) {
+        if (i2c->S & S_ERR) {
             // No Ack Error
             i2c->S |= S_ERR;
             return -1;
@@ -258,6 +254,9 @@ uint32_t i2c_get_clock_speed(i2c_t *i2c) {
     return 250000000 / i2c->DIV;
 }
 
+int i2c_busy(i2c_t *i2c) {
+    return i2c->S & S_TA;
+}
 
 int main(int argc, char **argv) {
   i2c_t* i2c = (i2c_t*) (BSC1);
@@ -277,10 +276,11 @@ int main(int argc, char **argv) {
       }
 
       if ((addr >= start) && (addr <= end)) {
+          while(i2c_busy(i2c));
           i2c_flush(i2c);
           i2c_set_slave(i2c, addr);
 
-          int buf = 0;
+          uint8_t buf = 0;
           int ret;
           if (((0x30 <= addr) && (addr <= 0x37))
               || ((0x50 <= addr) && (addr <= 0x5f))) {
