@@ -209,6 +209,10 @@ int spi_write_read(spi_t *spi, uint8_t *buf_tx, const uint32_t wlen, uint8_t *bu
                 *buf_rx++ = spi->FIFO;
                 rxlen--;
             }
+        } else {
+            while (spi->CS & CS_RXR) {
+                spi->FIFO;
+            }
         }
 
         if (spi->CS & CS_DONE) {
