@@ -44,46 +44,6 @@
 #define SYST_CLO IOREG(0x20003004)
 #define SYST_CHI IOREG(0x20003008)
 
-// SPI registers
-
-#define SPI0 (0x20204000)
-
-typedef volatile struct _spi_t {
-    uint32_t CS;
-    uint32_t FIFO;
-    uint32_t CLK;
-    uint32_t DLEN;
-    uint32_t LTOH;
-    uint32_t DC;
-} spi_t;
-
-#define CS_LEN_LONG (1<<25)
-#define CS_DMA_LEN  (1<<24)
-#define CS_CSPOL2   (1<<23)
-#define CS_CSPOL1   (1<<22)
-#define CS_CSPOL0   (1<<21)
-#define CS_RXF      (1<<20)
-#define CS_RXR      (1<<19)
-#define CS_TXD      (1<<18)
-#define CS_RXD      (1<<17)
-#define CS_DONE     (1<<16)
-#define CS_TE_EN    (1<<15)
-#define CS_LMONO    (1<<14)
-#define CS_LEN      (1<<13)
-#define CS_REN      (1<<12)
-#define CS_ADCS     (1<<11)
-#define CS_INTR     (1<<10)
-#define CS_INTD     (1<<9)
-#define CS_DMAEN    (1<<8)
-#define CS_TA       (1<<7)
-#define CS_CSPOL    (1<<6)
-#define CS_CLEAR    (3<<4)
-#define CS_CPOL     (1<<3)
-#define CS_CPHA     (1<<2)
-#define CS_CS       (3<<0)
-
-#define CLEAR_TX    (1<<4)
-#define CLEAR_RX    (2<<4)
 
 extern uint32_t __bss_start, __bss_end;
 
@@ -199,21 +159,21 @@ uint32_t mailbox_read(uint8_t chan) {
 }
 
 typedef struct _fb_info_t {
-    uint32_t display_w;  //write display width
-    uint32_t display_h;  //write display height
-    uint32_t w;          //write framebuffer width
-    uint32_t h;          //write framebuffer height
-    uint32_t row_bytes;  //write 0 to get value
-    uint32_t bpp;        //write bits per pixel
-    uint32_t ofs_x;      //write x offset of framebuffer
-    uint32_t ofs_y;      //write y offset of framebuffer
-    uint32_t buf_addr;   //write 0 to get value
-    uint32_t buf_size;   //write 0 to get value
+    uint32_t display_w;  // display width
+    uint32_t display_h;  // display height
+    uint32_t w;          // framebuffer width
+    uint32_t h;          // framebuffer height
+    uint32_t row_bytes;  // write 0 to get value
+    uint32_t bpp;        // bits per pixel
+    uint32_t ofs_x;      // x offset of framebuffer
+    uint32_t ofs_y;      // y offset of framebuffer
+    uint32_t buf_addr;   // pointer to framebuffer
+    uint32_t buf_size;   // framebuffer size in bytes
 } fb_info_t;
 
 void fb_init(fb_info_t *fb_info) {
     unsigned int message[] = {
-        112,                        // buffer is 80 bytes
+        112,                        // buffer is 112 bytes
         0,                          // This is a request
         0x00048003, 8, 0,           // Set the screen size to..
         fb_info->display_w,         // @5
@@ -225,7 +185,7 @@ void fb_init(fb_info_t *fb_info) {
         fb_info->bpp,               // @15
         0x00040008, 4, 0,           // Get the pitch
         0,                          // @19
-        0x00040001, 8, 0,           // reqest frame buffer address..
+        0x00040001, 8, 0,           // Get the frame buffer address..
         16, 0,                      // @23 a 16 byte aligned
         0,                          // @25 the end tag
         0, 0,                       // padding; 16 byte aligned
