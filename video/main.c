@@ -20,30 +20,34 @@ void Init_Machine(void) {
   __asm volatile("b .");
 }
 
-#define MAILBOX_READ   IOREG(0x2000B880)
-#define MAILBOX_POLL   IOREG(0x2000B890)
-#define MAILBOX_SENDER IOREG(0x2000B894)
-#define MAILBOX_STATUS IOREG(0x2000B898)
-#define MAILBOX_CONFIG IOREG(0x2000B89C)
-#define MAILBOX_WRITE  IOREG(0x2000B8A0)
+#define MAILBOX0_FIFO   IOREG(0x2000B880)
+#define MAILBOX0_POLL   IOREG(0x2000B890)
+#define MAILBOX0_SENDER IOREG(0x2000B894)
+#define MAILBOX0_STATUS IOREG(0x2000B898)
+#define MAILBOX0_CONFIG IOREG(0x2000B89C)
+#define MAILBOX1_FIFO   IOREG(0x2000B8A0)
+#define MAILBOX1_POLL   IOREG(0x2000B890)
+#define MAILBOX1_SENDER IOREG(0x2000B894)
+#define MAILBOX1_STATUS IOREG(0x2000B898)
+#define MAILBOX1_CONFIG IOREG(0x2000B89C)
 
 #define MAIL_FULL      0x80000000
 #define MAIL_EMPTY     0x40000000
 
 void mailbox_write(uint8_t chan, uint32_t msg) {
     if ((msg & 0xfU) == 0) {
-        while ((MAILBOX_STATUS & MAIL_FULL) != 0) {
+        while ((MAILBOX1_STATUS & MAIL_FULL) != 0) {
         }
-        MAILBOX_WRITE = msg | chan;
+        MAILBOX1_FIFO = msg | chan;
     }
 }
 
 uint32_t mailbox_read(uint8_t chan) {
     uint32_t data;
     do {
-        while (MAILBOX_STATUS & MAIL_EMPTY) {
+        while (MAILBOX0_STATUS & MAIL_EMPTY) {
         }
-    } while (((data = MAILBOX_READ) & 0xfU) != chan);
+    } while (((data = MAILBOX0_FIFO) & 0xfU) != chan);
     return data >> 4;
 }
 
