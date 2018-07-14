@@ -1,3 +1,6 @@
 [submodule "usb_kbd/csud"]
 	path = usb_kbd/csud
 	url = https://github.com/boochow/csud.git
+[submodule "usb_kbd_jp/csud"]
+	path = usb_kbd_jp/csud
+	url = https://github.com/boochow/csud.git
