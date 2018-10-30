@@ -213,7 +213,7 @@ void uart_put_hex(const unsigned char c) {
 
 // PCM functions
 
-void init_pcm(uint32_t src, uint32_t div) {
+void init_gpio_and_clock(uint32_t src, uint32_t div) {
     // set GPIO18, 19 to ALT0
     GPFSEL1 |= (GPF_ALT_0 << (3*8)) | (GPF_ALT_0 << (3*9));
     // set GPIO20, 21 to ALT0
@@ -234,7 +234,8 @@ int main(int argc, char **argv) {
   uart_print("\r\nI2S test. Signal is on GPIO18(CLK)/19(FS)/21(DATA).\r\n");
   delay_ms(1000);
 
-  init_pcm(CM_PCMCTL_SRC_OSC, 75); // 19.2MHz/75 = 256KHz clock frequency
+  // set BCLK to 19.2MHz/75 = 256KHz 
+  init_gpio_and_clock(CM_PCMCTL_SRC_OSC, 75); 
 
   // initialize pcm
 
@@ -263,8 +264,8 @@ int main(int argc, char **argv) {
   // output audio PCM data
   uint32_t saw[16] = {0x80008000, 0x90009000, 0xa000a000, 0xb000b000, \
                       0xc000c000, 0xd000d000, 0xe000e000, 0xf000f000, \
-                      0, 0x10001000, 0x20002000, 0x30003000,          \
-                      0x40004000, 0x50005000, 0x60006000, 0x070007000};
+                      0,          0x10001000, 0x20002000, 0x30003000, \
+                      0x40004000, 0x50005000, 0x60006000, 0x70007000,};
   int i = 0;
   while(1) {
       // Poll TXW writing sample words to PCMFIFO and RXR reading sample words from PCMFIFO
