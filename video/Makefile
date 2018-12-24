@@ -32,7 +32,7 @@ deploy: kernel.img
 #kernel.img: kernel.elf
 #	$(OBJCOPY) -O binary $< $@
 
-kernel.elf: $(OBJ) rpi.ld
+kernel.elf: $(OBJ)
 	$(ECHO) "LINK $@"
 	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 	$(SIZE) $@
