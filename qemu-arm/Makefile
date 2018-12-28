@@ -25,7 +25,7 @@ OBJ = $(SRC_C:.c=.o) $(SRC_S:.s=.o)
 
 all: run
 
-kernel.elf: $(OBJ) rpi.ld
+kernel.elf: $(OBJ)
 	$(ECHO) "LINK $@"
 	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
 	$(SIZE) $@
